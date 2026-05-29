@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
+.venv/
+venv/
+env/
+.env
+.DS_Store
+.AppleDouble
+.LSOverride
+output/runs/
