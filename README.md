@@ -5,10 +5,15 @@ Small FastAPI service for extracting calendar events from natural language with 
 ## Setup
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
-export GEMINI_API_KEY="your-api-key"
+```
+
+Create `/home/admin/voice_calendar/.env` for deployment:
+
+```bash
+GEMINI_API_KEY=your-api-key
 ```
 
 ## Run
@@ -22,11 +27,18 @@ The API will be available at `http://127.0.0.1:8000`.
 ## Example
 
 ```bash
-curl -X POST http://127.0.0.1:8000/calendar/events \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "Book a project sync tomorrow at 10am for 45 minutes with Alex.",
-    "timezone": "Asia/Shanghai",
-    "now": "2026-05-29T15:00:00+08:00"
-  }'
+curl -X POST "http://127.0.0.1:8000/event?text=明天下午两点在肯德基吃饭"
+```
+
+## Systemd Service
+
+The service file is `deploy/voice_calendar.service` and expects the app to live in `/home/admin/voice_calendar`.
+
+Install and start it with:
+
+```bash
+sudo cp deploy/voice_calendar.service /etc/systemd/system/voice_calendar.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now voice_calendar
+sudo systemctl status voice_calendar
 ```
