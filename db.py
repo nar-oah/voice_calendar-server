@@ -36,6 +36,7 @@ class Db:
         def get_event(row: TupleRow) -> Event:
             return Event(
                 action=event.action,
+                id=row[0],
                 title=row[1],
                 start=get_time(row[2]),
                 end=get_time(row[3]),
