@@ -1,6 +1,6 @@
 from enum import StrEnum
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class Action(StrEnum):
@@ -25,6 +25,28 @@ class Event(BaseModel):
     end: Time = Field(description="The end time of the event.")
     location: str | None = Field(description="The location of the event.")
     description: str | None = Field(description="A description of the event.")
+
+    @model_validator(mode="after")
+    def validate_time_order(self) -> "Event":
+        start = (
+            self.start.year,
+            self.start.month,
+            self.start.day,
+            self.start.hour,
+            self.start.minute,
+            self.start.second,
+        )
+        end = (
+            self.end.year,
+            self.end.month,
+            self.end.day,
+            self.end.hour,
+            self.end.minute,
+            self.end.second,
+        )
+        if end <= start:
+            raise ValueError("end must be later than start")
+        return self
 
 
 class StoredEvent(BaseModel):
