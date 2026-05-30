@@ -45,43 +45,35 @@ class Db:
         return map(lambda row: self._get_event(row), self.cursor.fetchall())
 
     def get_blur_event(self, token: str, event: Event) -> StoredEvent | None:
-        fields = [
-            ("title", event.title),
-            ("location", event.location),
-            ("description", event.description),
-        ]
-        blur_fields = [
-            (column, value)
-            for column, value in fields
-            if isinstance(value, str) and value.strip()
-        ]
-        if not blur_fields:
-            return None
-
-        values = [value for _, value in blur_fields]
-        matches = [f"{column} %% %s" for column, _ in blur_fields]
-        scores = [
-            f"COALESCE(similarity({column}, %s), 0)"
-            for column, _ in blur_fields
-        ]
-
         self.cursor.execute(
-            f"""
+            """
             SELECT id, title, start_at, end_at, location, description
             FROM events
             WHERE token = %s
                 AND start_at >= %s
                 AND end_at <= %s
-                AND ({" OR ".join(matches)})
-            ORDER BY {" + ".join(scores)} DESC, start_at ASC
+                AND (
+                    title %% %s
+                    OR location %% %s
+                    OR description %% %s
+                )
+            ORDER BY (
+                COALESCE(similarity(title, %s), 0)
+                + COALESCE(similarity(location, %s), 0)
+                + COALESCE(similarity(description, %s), 0)
+            ) DESC, start_at ASC
             LIMIT 1
             """,
             (
                 token,
                 self._get_datetime(event.start),
                 self._get_datetime(event.end),
-                *values,
-                *values,
+                event.title,
+                event.location,
+                event.description,
+                event.title,
+                event.location,
+                event.description,
             ),
         )
         row = self.cursor.fetchone()
