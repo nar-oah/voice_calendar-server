@@ -37,6 +37,11 @@ def get_events(text: str) -> Event:
     return parser if isinstance(parser := get_parser(text), Event) else get_event(text)
 
 
+@app.post("/add", response_model=StoredEvent | None)
+def add_event(token: str, event: Event) -> StoredEvent | None:
+    return db.add_event(token, event)
+
+
 if __name__ == "__main__":
     import uvicorn
 
