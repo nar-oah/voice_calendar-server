@@ -42,7 +42,7 @@ _COMMAND_RE = re.compile(
 _LEADING_CONNECTOR_RE = re.compile(r"^[到至去和跟与、，。,.；;：:\s]+")
 
 
-def get_event(text: str) -> Event | None:
+def get_parser(text: str) -> Event | None:
     req = text.strip()
     time_entity = _extract_time(req)
     bounds = _get_time_bounds(time_entity)

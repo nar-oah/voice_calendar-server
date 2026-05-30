@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from models import Event
+from parser import get_parser
 from service import get_event
 
 app = FastAPI(title="Voice Calendar Gemini Server")
@@ -18,12 +19,8 @@ app.add_middleware(
 
 
 @app.post("/event", response_model=Event)
-def get_health(text: str) -> Event:
-    return get_event(text)
-
-
-# @app.post("/add", response_model=None)
-# def get_events(event: Event) -> None:
+def get_events(text: str) -> Event:
+    return parser if isinstance(parser := get_parser(text), Event) else get_event(text)
 
 
 if __name__ == "__main__":
