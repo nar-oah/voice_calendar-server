@@ -139,3 +139,7 @@ def _remove_time_text(text: str, entity: dict[str, object] | None) -> str:
     if not isinstance(start, int) or not isinstance(end, int):
         return text
     return text[:start] + text[end:]
+
+
+if __name__ == "__main__":
+    print(get_parser("明天下午两点在肯德基吃饭"))
