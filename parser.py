@@ -7,13 +7,9 @@ from util import get_time
 
 _DANGEROUS_RE = re.compile(
     r"(说|告诉|听说|提到|表示|通知|问|让|叫|如果|假如|要是|否则|"
+    r"取消|删除|删掉|删了|移除|查看|查询|查找|找一下|看看|读取|显示|列出|"
     r"改|修改|更新|推迟|提前|延期|延后|改天|每[天周月年]|"
     r"之前|之后|以前|以后|那天|当天|到时候|顺便|另外|还有|然后)"
-)
-_ACTION_RE = re.compile(
-    r"(?P<delete>取消|删除|删掉|删了|移除)|"
-    r"(?P<read>查看|查询|查找|找一下|看看|读取|显示|列出)|"
-    r"(?P<create>安排|新增|创建|添加|提醒我|提醒一下|提醒|记一下|记下|设置)"
 )
 _EVENT_WORDS = {
     "开会",
@@ -37,8 +33,7 @@ _DESCRIPTION_RE = re.compile(
 )
 _COMMAND_RE = re.compile(
     r"(帮我|请|给我|我要|我想|安排|新增|创建|添加|提醒我|提醒一下|"
-    r"提醒|记一下|记下|设置|取消|删除|删掉|删了|移除|查看|查询|查找|"
-    r"找一下|看看|读取|显示|列出|日程|一个|一下)"
+    r"提醒|记一下|记下|设置|日程|一个|一下)"
 )
 _LEADING_CONNECTOR_RE = re.compile(r"^[到至去和跟与、，。,.；;：:\s]+")
 
@@ -53,7 +48,7 @@ def get_parser(text: str) -> Event | None:
         location = _extract_location(content)
         title = _extract_title(content, location)
         return Event(
-            action=_extract_action(req),
+            action=Action.create,
             title=title,
             start=get_time(datetime.strptime(bounds[0], "%Y-%m-%d %H:%M:%S")),
             end=get_time(datetime.strptime(bounds[1], "%Y-%m-%d %H:%M:%S")),
@@ -64,12 +59,6 @@ def get_parser(text: str) -> Event | None:
 
 def _is_simple_structure(text: str) -> bool:
     return _DANGEROUS_RE.search(text) is None
-
-
-def _extract_action(text: str) -> Action:
-    match = _ACTION_RE.search(text)
-    action = match.lastgroup if match else None
-    return getattr(Action, action) if isinstance(action, str) else Action.create
 
 
 def _extract_time(text: str) -> dict[str, object] | None:

@@ -20,7 +20,7 @@ class Time(BaseModel):
 
 class Event(BaseModel):
     action: Action = Field(description="用户想执行的日程操作")
-    id: int | None = None
+    id: int = 0
     title: str = Field(description="The title of the event.")
     start: Time = Field(description="The start time of the event.")
     end: Time = Field(description="The end time of the event.")
