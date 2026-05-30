@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 class Action(StrEnum):
     create = "create"
     delete = "delete"
-    update = "update"
+    read = "read"
 
 
 class Time(BaseModel):
