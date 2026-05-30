@@ -27,10 +27,6 @@ class Event(BaseModel):
     description: str | None = Field(description="A description of the event.")
 
 
-class TokenReq(BaseModel):
-    token: str
-
-
 class StoredEvent(BaseModel):
     id: int
     title: str

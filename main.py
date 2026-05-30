@@ -2,7 +2,7 @@ from secrets import token_urlsafe
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db import Db
-from models import Event, StoredEvent, TokenReq
+from models import Event, StoredEvent
 from parser import get_parser
 from service import get_event
 
@@ -28,8 +28,8 @@ def create_token() -> str:
 
 
 @app.post("/events", response_model=list[StoredEvent])
-def read_events(req: TokenReq) -> list[StoredEvent]:
-    return list(db.get_events(req.token))
+def read_events(token: str) -> list[StoredEvent]:
+    return list(db.get_events(token))
 
 
 @app.post("/event", response_model=Event)
