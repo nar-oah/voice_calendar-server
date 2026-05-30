@@ -43,6 +43,11 @@ def add_event(token: str, event: Event) -> StoredEvent | None:
     return db.add_event(token, event)
 
 
+@app.post("/del", response_model=None)
+def del_event(token: str, id: int) -> None:
+    return db.del_event(token, id)
+
+
 if __name__ == "__main__":
     import uvicorn
 
