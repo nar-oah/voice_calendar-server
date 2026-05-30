@@ -1,7 +1,8 @@
 import re
 from datetime import datetime
 import jionlp as jio
-from models import Action, Event, Time
+from models import Action, Event
+from util import get_time
 
 
 _DANGEROUS_RE = re.compile(
@@ -54,8 +55,8 @@ def get_parser(text: str) -> Event | None:
         return Event(
             action=_extract_action(req),
             title=title,
-            start=_to_time(bounds[0]),
-            end=_to_time(bounds[1]),
+            start=get_time(datetime.strptime(bounds[0], "%Y-%m-%d %H:%M:%S")),
+            end=get_time(datetime.strptime(bounds[1], "%Y-%m-%d %H:%M:%S")),
             location=location,
             description=description,
         )
@@ -92,18 +93,6 @@ def _get_time_bounds(entity: dict | None) -> list[str] | None:
     times = detail.get("time") if isinstance(detail, dict) else None
     valid = isinstance(times, list) and len(times) == 2
     return times if valid else None
-
-
-def _to_time(value: str) -> Time:
-    dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-    return Time(
-        year=dt.year,
-        month=dt.month,
-        day=dt.day,
-        hour=dt.hour,
-        minute=dt.minute,
-        second=dt.second,
-    )
 
 
 def _extract_description(text: str) -> str | None:
