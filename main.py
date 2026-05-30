@@ -1,5 +1,4 @@
 from secrets import token_urlsafe
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db import Db
@@ -23,14 +22,14 @@ app.add_middleware(
 )
 
 
-@app.post("/token", response_model=str)
+@app.get("/token", response_model=str)
 def create_token() -> str:
     return token_urlsafe(32)
 
 
 @app.post("/events", response_model=list[StoredEvent])
 def read_events(req: TokenReq) -> list[StoredEvent]:
-    return db.get_events(req.token)
+    return list(db.get_events(req.token))
 
 
 @app.post("/event", response_model=Event)
