@@ -50,9 +50,10 @@ def parse_local_event(text: str) -> Event | None:
     if bounds is None or not _is_simple_structure(req):
         return None
 
-    description = _extract_description(req)
-    location = _extract_location(req)
-    title = _extract_title(req, location, time_entity)
+    content = _remove_time_text(req, time_entity)
+    description = _extract_description(content)
+    location = _extract_location(content)
+    title = _extract_title(content, location)
     return Event(
         action=Action.create,
         title=title,
@@ -115,9 +116,8 @@ def _extract_location(text: str) -> str | None:
     return None if location in _EVENT_WORDS else location
 
 
-def _extract_title(text: str, location: str | None, time_entity: dict[str, object] | None) -> str:
+def _extract_title(text: str, location: str | None) -> str:
     title = text
-    title = _remove_time_text(title, time_entity)
     title = _DESCRIPTION_RE.sub("", title)
     title = _COMMAND_RE.sub("", title)
     if location:
