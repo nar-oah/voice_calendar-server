@@ -10,16 +10,17 @@ class Db:
         self.conn = psycopg.connect()
         self.cursor = self.conn.cursor()
 
+    def _get_event(self, row: TupleRow) -> StoredEvent:
+        return StoredEvent(
+            id=row[0],
+            title=row[1],
+            start_at=row[2],
+            end_at=row[3],
+            location=row[4],
+            description=row[5],
+        )
+
     def get_events(self, token: str) -> Iterable[StoredEvent]:
-        def get_event(row: TupleRow) -> StoredEvent:
-            return StoredEvent(
-                id=row[0],
-                title=row[1],
-                start_at=row[2],
-                end_at=row[3],
-                location=row[4],
-                description=row[5],
-            )
 
         self.cursor.execute(
             """
@@ -29,9 +30,9 @@ class Db:
             """,
             (token,),
         )
-        return map(lambda row: get_event(row), self.cursor.fetchall())
+        return map(lambda row: self._get_event(row), self.cursor.fetchall())
 
-    def add_event(self, token: str, event: Event) -> StoredEvent:
+    def add_event(self, token: str, event: Event) -> StoredEvent | None:
         def get_datetime(value: Time) -> datetime:
             return datetime(
                 year=value.year,
@@ -40,16 +41,6 @@ class Db:
                 hour=value.hour,
                 minute=value.minute,
                 second=value.second,
-            )
-
-        def get_event(row: TupleRow) -> StoredEvent:
-            return StoredEvent(
-                id=row[0],
-                title=row[1],
-                start_at=row[2],
-                end_at=row[3],
-                location=row[4],
-                description=row[5],
             )
 
         self.cursor.execute(
@@ -71,4 +62,4 @@ class Db:
         )
         row = self.cursor.fetchone()
         self.conn.commit()
-        return get_event(row)
+        return self._get_event(row) if isinstance(row, tuple) else None
