@@ -99,3 +99,14 @@ class Db:
         row = self.cursor.fetchone()
         self.conn.commit()
         return self._get_event(row) if isinstance(row, tuple) else None
+
+    def del_event(self, token: str, id: int) -> None:
+        self.cursor.execute(
+            """
+            DELETE FROM events
+            WHERE token = %s
+                AND id = %s
+            """,
+            (token, id),
+        )
+        self.conn.commit()
