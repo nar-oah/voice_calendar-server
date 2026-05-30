@@ -42,31 +42,23 @@ _COMMAND_RE = re.compile(
 _LEADING_CONNECTOR_RE = re.compile(r"^[到至去和跟与、，。,.；;：:\s]+")
 
 
-def can_parse_lightweight(text: str) -> bool:
-    req = text.strip()
-    time_entity = _extract_time(req)
-    return bool(req and _get_time_bounds(time_entity) and _is_simple_structure(req))
-
-
-def parse_local_event(text: str) -> Event | None:
+def get_event(text: str) -> Event | None:
     req = text.strip()
     time_entity = _extract_time(req)
     bounds = _get_time_bounds(time_entity)
-    if bounds is None or not _is_simple_structure(req):
-        return None
-
-    content = _remove_time_text(req, time_entity)
-    description = _extract_description(content)
-    location = _extract_location(content)
-    title = _extract_title(content, location)
-    return Event(
-        action=_extract_action(req),
-        title=title,
-        start=_to_time(bounds[0]),
-        end=_to_time(bounds[1]),
-        location=location,
-        description=description,
-    )
+    if req and bounds and _is_simple_structure(req):
+        content = _remove_time_text(req, time_entity)
+        description = _extract_description(content)
+        location = _extract_location(content)
+        title = _extract_title(content, location)
+        return Event(
+            action=_extract_action(req),
+            title=title,
+            start=_to_time(bounds[0]),
+            end=_to_time(bounds[1]),
+            location=location,
+            description=description,
+        )
 
 
 def _is_simple_structure(text: str) -> bool:
