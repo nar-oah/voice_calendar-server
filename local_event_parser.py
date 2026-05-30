@@ -60,7 +60,7 @@ def parse_local_event(text: str) -> Event | None:
 
     description = _extract_description(req)
     location = _extract_location(req)
-    title = _extract_title(req, location, description)
+    title = _extract_title(req, location)
     return Event(
         action=Action.create,
         title=title,
@@ -120,7 +120,7 @@ def _extract_location(text: str) -> str | None:
     return None if location in _EVENT_WORDS else location
 
 
-def _extract_title(text: str, location: str | None, description: str | None) -> str:
+def _extract_title(text: str, location: str | None) -> str:
     title = text
     title = _DESCRIPTION_RE.sub("", title)
     title = _TIME_TEXT_RE.sub("", title)
