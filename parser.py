@@ -1,16 +1,18 @@
 import re
 from datetime import datetime
-from typing import cast
-
 import jionlp as jio
-
 from models import Action, Event, Time
 
 
 _DANGEROUS_RE = re.compile(
     r"(说|告诉|听说|提到|表示|通知|问|让|叫|如果|假如|要是|否则|"
-    r"取消|删除|改|修改|更新|推迟|提前|延期|延后|改天|每[天周月年]|"
+    r"改|修改|更新|推迟|提前|延期|延后|改天|每[天周月年]|"
     r"之前|之后|以前|以后|那天|当天|到时候|顺便|另外|还有|然后)"
+)
+_ACTION_RE = re.compile(
+    r"(?P<delete>取消|删除|删掉|删了|移除)|"
+    r"(?P<read>查看|查询|查找|找一下|看看|读取|显示|列出)|"
+    r"(?P<create>安排|新增|创建|添加|提醒我|提醒一下|提醒|记一下|记下|设置)"
 )
 _EVENT_WORDS = {
     "开会",
@@ -29,10 +31,13 @@ _LOCATION_RE = re.compile(
     r"(?:在|到|去|前往|于)(?P<location>[^，。,.；;]+?)"
     r"(?=(?:开会|吃饭|见面|面试|上课|会议|聚餐|运动|健身|看电影|办事|参加|$))"
 )
-_DESCRIPTION_RE = re.compile(r"(?:备注|描述|说明|内容)[:：为是]?(?P<description>[^，。,.；;]+)")
+_DESCRIPTION_RE = re.compile(
+    r"(?:备注|描述|说明|内容)[:：为是]?(?P<description>[^，。,.；;]+)"
+)
 _COMMAND_RE = re.compile(
     r"(帮我|请|给我|我要|我想|安排|新增|创建|添加|提醒我|提醒一下|"
-    r"提醒|记一下|记下|设置|日程|一个|一下)"
+    r"提醒|记一下|记下|设置|取消|删除|删掉|删了|移除|查看|查询|查找|"
+    r"找一下|看看|读取|显示|列出|日程|一个|一下)"
 )
 _LEADING_CONNECTOR_RE = re.compile(r"^[到至去和跟与、，。,.；;：:\s]+")
 
@@ -55,7 +60,7 @@ def parse_local_event(text: str) -> Event | None:
     location = _extract_location(content)
     title = _extract_title(content, location)
     return Event(
-        action=Action.create,
+        action=_extract_action(req),
         title=title,
         start=_to_time(bounds[0]),
         end=_to_time(bounds[1]),
@@ -66,6 +71,12 @@ def parse_local_event(text: str) -> Event | None:
 
 def _is_simple_structure(text: str) -> bool:
     return _DANGEROUS_RE.search(text) is None
+
+
+def _extract_action(text: str) -> Action:
+    match = _ACTION_RE.search(text)
+    action = match.lastgroup if match else None
+    return getattr(Action, action) if isinstance(action, str) else Action.create
 
 
 def _extract_time(text: str) -> dict[str, object] | None:
@@ -84,11 +95,11 @@ def _extract_time(text: str) -> dict[str, object] | None:
     return entities[0] if isinstance(entities[0], dict) else None
 
 
-def _get_time_bounds(entity: dict[str, object] | None) -> list[str] | None:
+def _get_time_bounds(entity: dict | None) -> list[str] | None:
     detail = entity.get("detail") if isinstance(entity, dict) else None
     times = detail.get("time") if isinstance(detail, dict) else None
     valid = isinstance(times, list) and len(times) == 2
-    return cast(list[str], times) if valid and all(isinstance(item, str) for item in times) else None
+    return times if valid else None
 
 
 def _to_time(value: str) -> Time:
@@ -121,7 +132,9 @@ def _extract_title(text: str, location: str | None) -> str:
     title = _DESCRIPTION_RE.sub("", title)
     title = _COMMAND_RE.sub("", title)
     if location:
-        title = re.sub(rf"(?:在|到|去|前往|于){re.escape(location)}", "", title, count=1)
+        title = re.sub(
+            rf"(?:在|到|去|前往|于){re.escape(location)}", "", title, count=1
+        )
     title = _LEADING_CONNECTOR_RE.sub("", title)
     return title.strip(" ，。,.；;：:的了")
 
