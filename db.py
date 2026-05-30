@@ -1,26 +1,14 @@
 from collections.abc import Iterable
-from datetime import datetime
-from zoneinfo import ZoneInfo
 import psycopg
 from psycopg.rows import TupleRow
-from models import Event, StoredEvent, Time
+from models import Event, StoredEvent
+from util import get_datetime, get_time
 
 
 class Db:
     def __init__(self) -> None:
         self.conn = psycopg.connect()
         self.cursor = self.conn.cursor()
-
-    def _get_datetime(self, value: Time) -> datetime:
-        return datetime(
-            year=value.year,
-            month=value.month,
-            day=value.day,
-            hour=value.hour,
-            minute=value.minute,
-            second=value.second,
-            tzinfo=ZoneInfo("Asia/Shanghai"),
-        )
 
     def _get_event(self, row: TupleRow) -> StoredEvent:
         return StoredEvent(
@@ -44,7 +32,17 @@ class Db:
         )
         return map(lambda row: self._get_event(row), self.cursor.fetchall())
 
-    def get_blur_event(self, token: str, event: Event) -> StoredEvent | None:
+    def get_blur_event(self, token: str, event: Event) -> Event | None:
+        def get_event(row: TupleRow) -> Event:
+            return Event(
+                action=event.action,
+                title=row[1],
+                start=get_time(row[2]),
+                end=get_time(row[3]),
+                location=row[4],
+                description=row[5],
+            )
+
         self.cursor.execute(
             """
             SELECT id, title, start_at, end_at, location, description
@@ -66,8 +64,8 @@ class Db:
             """,
             (
                 token,
-                self._get_datetime(event.start),
-                self._get_datetime(event.end),
+                get_datetime(event.start),
+                get_datetime(event.end),
                 event.title,
                 event.location,
                 event.description,
@@ -77,7 +75,7 @@ class Db:
             ),
         )
         row = self.cursor.fetchone()
-        return self._get_event(row) if isinstance(row, tuple) else None
+        return get_event(row) if isinstance(row, tuple) else None
 
     def add_event(self, token: str, event: Event) -> StoredEvent | None:
         self.cursor.execute(
@@ -91,8 +89,8 @@ class Db:
             (
                 token,
                 event.title,
-                self._get_datetime(event.start),
-                self._get_datetime(event.end),
+                get_datetime(event.start),
+                get_datetime(event.end),
                 event.location,
                 event.description,
             ),
