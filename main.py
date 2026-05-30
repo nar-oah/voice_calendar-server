@@ -1,9 +1,14 @@
+from secrets import token_urlsafe
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from models import Event
+from db import Db
+from models import Event, StoredEvent, TokenReq
 from parser import get_parser
 from service import get_event
 
+
+db = Db()
 app = FastAPI(title="Voice Calendar Gemini Server")
 app.add_middleware(
     CORSMiddleware,
@@ -16,6 +21,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.post("/token", response_model=str)
+def create_token() -> str:
+    return token_urlsafe(32)
+
+
+@app.post("/events", response_model=list[StoredEvent])
+def read_events(req: TokenReq) -> list[StoredEvent]:
+    return db.get_events(req.token)
 
 
 @app.post("/event", response_model=Event)

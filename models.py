@@ -1,4 +1,5 @@
 from enum import StrEnum
+from datetime import datetime
 from pydantic import BaseModel, Field
 
 
@@ -24,3 +25,16 @@ class Event(BaseModel):
     end: Time = Field(description="The end time of the event.")
     location: str | None = Field(description="The location of the event.")
     description: str | None = Field(description="A description of the event.")
+
+
+class TokenReq(BaseModel):
+    token: str
+
+
+class StoredEvent(BaseModel):
+    id: int
+    title: str
+    start_at: datetime
+    end_at: datetime
+    location: str | None
+    description: str | None
