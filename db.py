@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import psycopg
 from psycopg.rows import TupleRow
 from models import Event, StoredEvent, Time
@@ -41,6 +42,7 @@ class Db:
                 hour=value.hour,
                 minute=value.minute,
                 second=value.second,
+                tzinfo=ZoneInfo("Asia/Shanghai"),
             )
 
         self.cursor.execute(
