@@ -5,3 +5,5 @@ pydantic
 jionlp
 psycopg[binary]
 bcrypt
+caldav
+icalendar

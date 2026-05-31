@@ -1,7 +1,8 @@
+from datetime import date, datetime, time, timedelta
 from secrets import token_urlsafe
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-from radicale import add_user
+from radicale import Radicale, add_user
 from db import Db
 from models import Action, Event, StoredEvent
 from parser import get_parser
@@ -43,12 +44,29 @@ def get_events(token: str, text: str) -> Event | None:
 def add_event(token: str, event: Event) -> StoredEvent | None:
     if len(db.get_data(token)) == 0:
         add_user(token)
-    return db.add_event(token, event)
+    resule = db.add_event(token, event)
+    if isinstance(resule, StoredEvent):
+        Radicale(token).add_event(resule)
+    return resule
 
 
 @app.post("/del", response_model=None)
 def del_event(token: str, id: int) -> None:
-    return db.del_event(token, id)
+    Radicale(token).del_event(id)
+    db.del_event(token, id)
+
+
+@app.post("/export", response_model=Response)
+def export_ics(token: str, date: date) -> Response:
+    start = datetime.combine(date, time.min)
+    ics = Radicale(token).get_calendar(start, start + timedelta(days=1))
+    return Response(
+        content=ics,
+        media_type="text/calendar; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="calendar.ics"',
+        },
+    )
 
 
 if __name__ == "__main__":
