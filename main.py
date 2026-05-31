@@ -24,6 +24,10 @@ app.add_middleware(
 )
 
 
+class CalendarResponse(Response):
+    media_type = "text/calendar"
+
+
 @app.get("/token", response_model=str)
 def create_token() -> str:
     return token_urlsafe(32)
@@ -56,13 +60,12 @@ def del_event(token: str, id: int) -> None:
     db.del_event(token, id)
 
 
-@app.post("/export", response_model=Response)
-def export_ics(token: str, date: date) -> Response:
+@app.post("/export", response_class=CalendarResponse)
+def export_ics(token: str, date: date) -> CalendarResponse:
     start = datetime.combine(date, time.min)
     ics = Radicale(token).get_calendar(start, start + timedelta(days=1))
-    return Response(
+    return CalendarResponse(
         content=ics,
-        media_type="text/calendar; charset=utf-8",
         headers={
             "Content-Disposition": 'attachment; filename="calendar.ics"',
         },
