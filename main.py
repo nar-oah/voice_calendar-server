@@ -47,11 +47,12 @@ def get_events(token: str, text: str) -> Event | None:
 @app.post("/add", response_model=StoredEvent | None)
 def add_event(token: str, event: Event, tasks: BackgroundTasks) -> StoredEvent | None:
     def add_event() -> None:
-        if len(db.get_data(token)) == 0:
+        if is_new:
             add_user(token)
         if isinstance(result, StoredEvent):
             Radicale(token).add_event(result)
 
+    is_new = len(db.get_data(token)) == 0
     result = db.add_event(token, event)
     tasks.add_task(add_event)
     return result
