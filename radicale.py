@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
 import bcrypt
@@ -38,10 +37,10 @@ class Radicale:
         calendar.add("version", "2.0")
 
     def get_calendar(self, start: datetime, end: datetime) -> bytes:
-        def add_vevent(calendar: Calendar, event: Event) -> Iterable[None]:
+        def add_vevent(calendar: Calendar, event: Event) -> None:
             source_calendar = Calendar.from_ical(event.data)
             vevents = filter(lambda c: c.name == "VEVENT", source_calendar.walk())
-            return map(lambda vevent: calendar.add_component(vevent), vevents)
+            list(map(lambda vevent: calendar.add_component(vevent), vevents))
 
         calendar = self.principal.calendar(CALENDAR)
         events = calendar.search(event=True, start=start, end=end, expand=False)
