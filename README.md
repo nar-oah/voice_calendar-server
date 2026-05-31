@@ -2,6 +2,7 @@
 
 语音日历工具后端服务。本仓库负责自然语言日程解析、事件持久化、模糊删除/查看、CalDAV 自动同步和 ICS 导出，是“语音版日历工具”的后端实现。
 
+- CalDAV后台地址：https://aws.naroah.top/radicale/
 - 后端线上地址：https://aws.naroah.top/calendar/
 - 后端 OpenAPI 文档：https://aws.naroah.top/calendar/docs
 - 前端仓库：https://github.com/nar-oah/voice_calendar-client
