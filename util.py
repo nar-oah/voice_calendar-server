@@ -2,6 +2,8 @@ from models import Time
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+LOCAL_ZONE = ZoneInfo("Asia/Shanghai")
+
 
 def get_datetime(value: Time) -> datetime:
     return datetime(
@@ -11,16 +13,17 @@ def get_datetime(value: Time) -> datetime:
         hour=value.hour,
         minute=value.minute,
         second=value.second,
-        tzinfo=ZoneInfo("Asia/Shanghai"),
+        tzinfo=LOCAL_ZONE,
     )
 
 
 def get_time(dt: datetime) -> Time:
+    value = dt.astimezone(LOCAL_ZONE) if dt.tzinfo is not None else dt
     return Time(
-        year=dt.year,
-        month=dt.month,
-        day=dt.day,
-        hour=dt.hour,
-        minute=dt.minute,
-        second=dt.second,
+        year=value.year,
+        month=value.month,
+        day=value.day,
+        hour=value.hour,
+        minute=value.minute,
+        second=value.second,
     )
