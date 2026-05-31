@@ -1,6 +1,7 @@
 from secrets import token_urlsafe
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from radicale import add_user
 from db import Db
 from models import Action, Event, StoredEvent
 from parser import get_parser
@@ -40,6 +41,8 @@ def get_events(token: str, text: str) -> Event | None:
 
 @app.post("/add", response_model=StoredEvent | None)
 def add_event(token: str, event: Event) -> StoredEvent | None:
+    if len(db.get_data(token)) == 0:
+        add_user(token)
     return db.add_event(token, event)
 
 
