@@ -1,6 +1,6 @@
 from datetime import date, datetime, time, timedelta
 from secrets import token_urlsafe
-from fastapi import FastAPI, Response
+from fastapi import BackgroundTasks, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from radicale import Radicale, add_user
 from db import Db
@@ -45,18 +45,21 @@ def get_events(token: str, text: str) -> Event | None:
 
 
 @app.post("/add", response_model=StoredEvent | None)
-def add_event(token: str, event: Event) -> StoredEvent | None:
-    if len(db.get_data(token)) == 0:
-        add_user(token)
-    resule = db.add_event(token, event)
-    if isinstance(resule, StoredEvent):
-        Radicale(token).add_event(resule)
-    return resule
+def add_event(token: str, event: Event, tasks: BackgroundTasks) -> StoredEvent | None:
+    def add_event() -> None:
+        if len(db.get_data(token)) == 0:
+            add_user(token)
+        if isinstance(result, StoredEvent):
+            Radicale(token).add_event(result)
+
+    result = db.add_event(token, event)
+    tasks.add_task(add_event)
+    return result
 
 
 @app.post("/del", response_model=None)
-def del_event(token: str, id: int) -> None:
-    Radicale(token).del_event(id)
+def del_event(token: str, id: int, tasks: BackgroundTasks) -> None:
+    tasks.add_task(lambda: Radicale(token).del_event(id))
     db.del_event(token, id)
 
 
