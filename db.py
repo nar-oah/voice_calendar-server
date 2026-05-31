@@ -20,8 +20,7 @@ class Db:
             description=row[5],
         )
 
-    def get_events(self, token: str) -> Iterable[StoredEvent]:
-
+    def get_data(self, token: str) -> list[TupleRow]:
         self.cursor.execute(
             """
             SELECT id, title, start_at, end_at, location, description
@@ -30,7 +29,10 @@ class Db:
             """,
             (token,),
         )
-        return map(lambda row: self._get_event(row), self.cursor.fetchall())
+        return self.cursor.fetchall()
+
+    def get_events(self, token: str) -> Iterable[StoredEvent]:
+        return map(lambda row: self._get_event(row), self.get_data(token))
 
     def get_blur_event(self, token: str, event: Event) -> Event | None:
         def get_event(row: TupleRow) -> Event:

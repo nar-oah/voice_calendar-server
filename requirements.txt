@@ -4,3 +4,6 @@ google-genai
 pydantic
 jionlp
 psycopg[binary]
+bcrypt
+caldav
+icalendar
