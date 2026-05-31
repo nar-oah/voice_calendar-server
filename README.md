@@ -147,8 +147,8 @@ https://aws.naroah.top/calendar/docs
 | --- | --- | --- | --- | --- |
 | `GET` | `/token` | 无 | `str` | 生成 32 字节 URL-safe token。 |
 | `POST` | `/events` | query: `token` | `StoredEvent[]` | 获取 token 下的所有事件。 |
-| `POST` | `/parser` | query: `token`, `text` | `Event | null` | 把自然语言文本解析成创建/删除/查看事件。 |
-| `POST` | `/add` | query: `token`; body: `Event` | `StoredEvent | null` | 新增事件并同步到 CalDAV。 |
+| `POST` | `/parser` | query: `token`, `text` | `Event  null` | 把自然语言文本解析成创建/删除/查看事件。 |
+| `POST` | `/add` | query: `token`; body: `Event` | `StoredEvent  null` | 新增事件并同步到 CalDAV。 |
 | `POST` | `/del` | query: `token`, `id` | 空 | 删除数据库和 CalDAV 中的事件。 |
 | `POST` | `/export` | query: `token`, `date` | `text/calendar` | 导出指定日期的 ICS 文件。 |
 
