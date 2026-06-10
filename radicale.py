@@ -26,12 +26,13 @@ def add_user(token: str) -> None:
         password = bcrypt.hashpw(token.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         file.seek(0, 2)
         file.write(f"{token}:{password}\n")
+        file.flush()
         return True
 
     with USERS_FILE.open("a+", encoding="utf-8") as file:
         fcntl.flock(file, fcntl.LOCK_EX)
-        created = False if has_user(file) else write_user(file)
-        Radicale(token).add_calendar(CALENDAR) if created else None
+        write_user(file) if not has_user(file) else None
+        Radicale(token).add_calendar(CALENDAR)
         fcntl.flock(file, fcntl.LOCK_UN)
 
 
@@ -40,8 +41,15 @@ class Radicale:
         with DAVClient(url=URL, username=token, password=token) as client:
             self.principal = client.principal()
 
+    def _get_calendar(self, name: str):
+        def is_calendar(calendar) -> bool:
+            return calendar.get_display_name() == name
+
+        calendars = list(filter(is_calendar, self.principal.get_calendars()))
+        return calendars[0] if len(calendars) > 0 else self.principal.make_calendar(name=name)
+
     def add_calendar(self, name: str) -> None:
-        self.principal.make_calendar(name=name)
+        self._get_calendar(name)
 
     def _add_clalendar_head(self, calendar: Calendar) -> None:
         calendar.add("prodid", "-//voice-calendar//naroah.top//")
@@ -53,7 +61,7 @@ class Radicale:
             vevents = filter(lambda c: c.name == "VEVENT", source_calendar.walk())
             list(map(lambda vevent: calendar.add_component(vevent), vevents))
 
-        calendar = self.principal.calendar(CALENDAR)
+        calendar = self._get_calendar(CALENDAR)
         events = calendar.search(event=True, start=start, end=end, expand=False)
         output = Calendar()
         self._add_clalendar_head(output)
@@ -76,14 +84,13 @@ class Radicale:
             calendar.add_component(vevent)
             return calendar.to_ical().decode("utf-8")
 
-        calendar = self.principal.calendar(CALENDAR)
+        calendar = self._get_calendar(CALENDAR)
         calendar.add_event(get_event(event))
 
     def del_event(self, id: int) -> None:
-        calendar = self.principal.calendar(CALENDAR)
+        calendar = self._get_calendar(CALENDAR)
         events = calendar.search(uid=f"{id}{UID_SUFFIX}", event=True)
-        events[0].delete()  # type: ignore
-
+        events[0].delete() if len(events) > 0 else None  # type: ignore
 
 if __name__ == "__main__":
     from secrets import token_urlsafe
