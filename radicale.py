@@ -15,13 +15,24 @@ UID_SUFFIX = "@voice-calendar"
 
 
 def add_user(token: str) -> None:
-    password = bcrypt.hashpw(token.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    line = f"{token}:{password}\n"
+    def get_login(line: str) -> str:
+        return line.split(":", 1)[0]
+
+    def has_user(file) -> bool:
+        file.seek(0)
+        return token in map(get_login, filter(lambda line: ":" in line, file))
+
+    def write_user(file) -> bool:
+        password = bcrypt.hashpw(token.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        file.seek(0, 2)
+        file.write(f"{token}:{password}\n")
+        return True
+
     with USERS_FILE.open("a+", encoding="utf-8") as file:
         fcntl.flock(file, fcntl.LOCK_EX)
-        file.write(line)
+        created = False if has_user(file) else write_user(file)
+        Radicale(token).add_calendar(CALENDAR) if created else None
         fcntl.flock(file, fcntl.LOCK_UN)
-    Radicale(token).add_calendar(CALENDAR)
 
 
 class Radicale:
